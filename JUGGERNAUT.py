@@ -1,42 +1,45 @@
 import streamlit as st
-import pandas as pd
-from sklearn.model_selection import train_test_split
 import xgboost as xgb
-from sklearn.metrics import mean_squared_error
+from sklearn.datasets import load_boston
+from sklearn.model_selection import train_test_split
+import joblib
+import pandas as pd
 
-# Create a file uploader
-uploaded_file = st.file_uploader("Choose a CSV file", type=["csv"])
+# Load the Boston housing dataset
+boston = load_boston()
+X, y = boston.data, boston.target
 
-if uploaded_file is not None:
-    # Read the uploaded file into a pandas dataframe
-    dataset = pd.read_csv(uploaded_file)
+# Convert y to a Pandas Series
+y = pd.Series(y)
 
-    # Ask for attribute to operate on and direction
-    attribute = st.selectbox("Select an attribute to operate on", dataset.columns)
-    direction = st.selectbox("Do you want to increase or decrease the attribute?", ["increase", "decrease"])
+# Check for missing values in y
+if y.isnull().sum() > 0:
+    # Impute missing values with the mean
+    y.fillna(y.mean(), inplace=True)
 
-    # Split dataset into features and target
-    X = dataset.drop(columns=[attribute])
-    y = dataset[attribute]
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    # Train gradient boosting model
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    model = xgb.XGBRegressor()
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-    mse = mean_squared_error(y_test, y_pred)
-    st.write(f"Model trained with MSE: {mse:.2f}")
+# Convert y_train to a NumPy array
+y_train_num = pd.to_numeric(y_train, errors='coerce')
 
-    # Propose solutions using gradient boosting
-    if direction == "increase":
-        feature_importances = model.feature_importances_
-        top_features = feature_importances.argsort()[-5:][::-1]
-        st.write(f"To increase {attribute}, focus on the following features:")
-        for feature in top_features:
-            st.write(f"  - {X.columns[feature]}")
-    elif direction == "decrease":
-        feature_importances = model.feature_importances_
-        bottom_features = feature_importances.argsort()[:5]
-        st.write(f"To decrease {attribute}, focus on the following features:")
-        for feature in bottom_features:
-            st.write(f"  - {X.columns[feature]}")
+# Train an XGBoost model
+model = xgb.XGBRegressor()
+model.fit(X_train, y_train_num)
+
+# Serialize the model using joblib
+joblib.dump(model, 'xgb_model.joblib')
+
+# Create a Streamlit app
+st.title("XGBoost Model")
+
+# Load the serialized model
+model = joblib.load('xgb_model.joblib')
+
+# Make predictions on the testing set
+y_pred = model.predict(X_test)
+
+# Visualize the results
+st.write("Mean Squared Error:", mean_squared_error(y_test, y_pred))
+st.write("Feature Importances:")
+st.write(model.feature_importances_)
