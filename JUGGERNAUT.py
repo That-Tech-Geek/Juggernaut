@@ -47,7 +47,7 @@ if uploaded_file is not None:
             df['date_num'] = (df['day'] * 1000000) + (df['month'] * 10000) + df['year']
 
             # Drop the original date-time column and the separate date features
-            df.drop([selected_col, 'year', 'month', 'day'], axis=1, inplace=True)
+            df.drop([selected_col, 'year', 'onth', 'day'], axis=1, inplace=True)
 
             # Display the dataframe
             st.write(df.head())
@@ -59,28 +59,31 @@ if uploaded_file is not None:
             direction = st.selectbox("Select the direction", ["Increase", "Decrease"])
 
             # Prepare the data for Gradient Boosting
-            X = df.drop(attribute, axis=1)
-            y = df[attribute]
-
-            # Split the data into training and testing sets
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
-
-            # Create a Gradient Boosting model
-            model = GradientBoostingRegressor()
-
-            # Train the model
-            model.fit(X_train, y_train)
-
-            # Generate recommendations
-            if direction == "Increase":
-                recommendations = model.feature_importances_.argsort()[-10:][::-1]
+            if attribute == 'date_num':
+                st.error("Cannot select 'date_num' as the attribute to increase or decrease.")
             else:
-                recommendations = model.feature_importances_.argsort()[:10]
+                X = df.drop([attribute, 'date_num'], axis=1)
+                y = df[attribute]
 
-            # Display the recommendations
-            st.write("Recommendations:")
-            for i, rec in enumerate(recommendations):
-                st.write(f"{i+1}. {X.columns[rec]}")
+                # Split the data into training and testing sets
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
+
+                # Create a Gradient Boosting model
+                model = GradientBoostingRegressor()
+
+                # Train the model
+                model.fit(X_train, y_train)
+
+                # Generate recommendations
+                if direction == "Increase":
+                    recommendations = model.feature_importances_.argsort()[-10:][::-1]
+                else:
+                    recommendations = model.feature_importances_.argsort()[:10]
+
+                # Display the recommendations
+                st.write("Recommendations:")
+                for i, rec in enumerate(recommendations):
+                    st.write(f"{i+1}. {X.columns[rec]}")
 
         else:
             st.error("No columns with date-time values found.")
