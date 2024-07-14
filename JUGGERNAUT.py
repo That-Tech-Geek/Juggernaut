@@ -33,21 +33,10 @@ class AttributeOptimizer:
             self.dataset[col] = (self.dataset[col] - min_val) / denominator
 
     def feature_engineering_module(self):
-        if self.feature_engineering_method == 'pca':
-            # Implement PCA manually
-            cov_matrix = np.cov(self.dataset.T)
-            eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
-            idx = eigenvalues.argsort()[::-1]
-            eigenvalues = eigenvalues[idx]
-            eigenvectors = eigenvectors[:,idx]
-            self.dataset = self.dataset.dot(eigenvectors[:, :2])
-        elif self.feature_engineering_method == 't_sne':
-            # Implement t-SNE manually
-            # This is a complex algorithm and implementing it manually is not recommended
-            # Instead, you can use a library like optuna to implement t-SNE
-            pass
-        else:
-            raise ValueError('Invalid feature engineering method')
+        self.dataset.replace([np.inf, -np.inf], np.nan, inplace=True)  # replace infinite values with NaN
+        self.dataset.fillna(self.dataset.mean(), inplace=True)  # replace NaN values with the mean of the column
+        cov_matrix = np.cov(self.dataset.T)  # compute the covariance matrix
+        eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)  # compute the eigenvalues and eigenvectors
 
     def machine_learning_module(self):
         if self.ml_model == 'random_forest':
