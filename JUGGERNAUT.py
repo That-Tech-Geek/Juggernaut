@@ -27,7 +27,7 @@ if uploaded_file is not None:
                 continue
 
         # Convert the date-time column to a datetime object
-        df[date_time_col] = df[date_time_col].apply(lambda x: x.split('T')[0])
+        df['start_time'] = df['start_time'].apply(lambda x: x[:-8])
 
         
         try:
