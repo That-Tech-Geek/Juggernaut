@@ -27,10 +27,7 @@ if uploaded_file is not None:
                 continue
 
         # Convert the date-time column to a datetime object
-        df[date_time_col] = pd.to_datetime(df[date_time_col])
-
-        # Convert the datetime object to DDMMYYYY format
-        df[date_time_col] = df[date_time_col].dt.strftime('%d%m%Y')
+        df[date_time_col] = pd.to_datetime(df[date_time_col]).dt.date.astype(str).str.replace('/', '')
 
         # Display the dataframe
         st.write(df.head())
