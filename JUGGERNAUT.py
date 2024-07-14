@@ -93,7 +93,8 @@ class AttributeOptimizer:
     def solution_ranking_module(self):
         solution_scores = []
         for solution in self.solutions:
-            impact = 0.5feasibility = 0.8
+            impact = 0.5
+            feasibility = 0.8
             cost = 0.3
             score = impact * feasibility / cost
             solution_scores.append(score)
