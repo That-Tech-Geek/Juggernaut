@@ -45,30 +45,16 @@ class AttributeOptimizer:
         X = self.dataset.drop([id_column, self.attribute1, self.attribute2], axis=1)  # select features
         X = X.select_dtypes(include=[np.number])  # select only numeric columns
         
-        if self.feature_engineering_method == 'none':
-            pass
-        elif self.feature_engineering_method == 'pca':
-            pca = PCA(n_components=0.95)  # retain 95% of the variance
-            X_pca = pca.fit_transform(X)
-            self.dataset = pd.concat([self.dataset[[id_column]], pd.DataFrame(X_pca, columns=[f'PC{i+1}' for i in range(X_pca.shape[1])]), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
-        elif self.feature_engineering_method == 'standardization':
-            scaler = StandardScaler()
-            X_scaled = scaler.fit_transform(X)
-            self.dataset = pd.concat([self.dataset[[id_column]], pd.DataFrame(X_scaled, columns=X.columns), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
-        elif self.feature_engineering_method == 'normalization':
-            scaler = MinMaxScaler()
-            X_scaled = scaler.fit_transform(X)
-            self.dataset = pd.concat([self.dataset[[id_column]], pd.DataFrame(X_scaled, columns=X.columns), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
-        else:
-            raise ValueError("Invalid feature engineering method. Please choose from 'none', 'pca', 'standardization', or 'normalization'.")
+        y = self.dataset[[self.attribute1, self.attribute2]]
         
-        if self.ml_model == 'gradient_boosting':
-            y = self.dataset[[self.attribute1, self.attribute2]]
-            gb_model = GradientBoostingRegressor(n_estimators=100, random_state=42)
-            gb_model.fit(X, y)
-            self.feature_importances = gb_model.feature_importances_
-        else:
-            raise ValueError('Invalid machine learning model')
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+        
+        self.dataset = pd.concat([self.dataset[[id_column]], pd.DataFrame(X_scaled, columns=X.columns), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
+        
+        gb_model = GradientBoostingRegressor(n_estimators=100, random_state=42)
+        gb_model.fit(X_scaled, y)
+        self.feature_importances = gb_model.feature_importances_
 
     def correlation_analysis_module(self):
         self.correlation_matrix = self.dataset.corr()
