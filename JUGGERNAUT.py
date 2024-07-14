@@ -25,11 +25,10 @@ class AttributeOptimizer:
         for col in self.dataset.columns:
             min_val = self.dataset[col].min()
             max_val = self.dataset[col].max()
-            if max_val != min_val:
-                self.dataset[col] = (self.dataset[col] - min_val) / (max_val - min_val)
-            else:
-                print(f"Warning: Column '{col}' has the same min and max values, cannot be normalized.")
-                # You can also raise an error or warning here if you want
+            denominator = max_val - min_val
+            if denominator == 0:
+                denominator = 1e-1000  # add a small value to avoid division by zero
+            self.dataset[col] = (self.dataset[col] - min_val) / denominator
 
     def feature_engineering_module(self):
         if self.feature_engineering_method == 'pca':
