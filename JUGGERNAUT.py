@@ -14,8 +14,11 @@ if uploaded_file is not None:
         elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
             df = pd.read_excel(uploaded_file)
 
+        # Replace '/' with '-' in all columns
+        df = df.apply(lambda x: x.str.replace('/', '-') if x.dtype == 'object' else x)
+
         # Find the column with date-time values
-        iso_cols = [col for col in df.select_dtypes(include=[object]).columns if df[col].str.replace('/', '-').str.contains(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:?\d{2})?$', na=False).any()]
+        iso_cols = [col for col in df.select_dtypes(include=[object]).columns if df[col].str.contains(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:?\d{2})?$', na=False).any()]
 
         if len(iso_cols) > 0:
             print("Select a column with ISO8601 format:")
