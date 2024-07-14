@@ -35,8 +35,19 @@ if uploaded_file is not None:
                 except ValueError:
                     st.error("Invalid date format. Please use 'MM/DD/YYYY HH:MM:SS' or 'MM-DD-YYYY HH:MM:SS' format.")
 
-            # Convert the datetime object to a numerical format
-            df[selected_col] = df[selected_col].apply(lambda x: x.timestamp())
+            # Extract year, month, day, hour, minute, second as separate features
+            df['year'] = df[selected_col].dt.year
+            df['month'] = df[selected_col].dt.month
+            df['day'] = df[selected_col].dt.day
+            df['hour'] = df[selected_col].dt.hour
+            df['minute'] = df[selected_col].dt.minute
+            df['second'] = df[selected_col].dt.second
+
+            # Create a new column in the format DDMMYYYY
+            df['date_num'] = (df['day'] * 1000000) + (df['month'] * 10000) + df['year']
+
+            # Drop the original date-time column and the separate date features
+            df.drop([selected_col, 'year', 'month', 'day'], axis=1, inplace=True)
 
             # Display the dataframe
             st.write(df.head())
