@@ -39,6 +39,12 @@ if uploaded_file is not None:
     X = df.drop(attribute, axis=1)
     y = df[attribute]
 
+    # Ensure y is numeric
+    y = pd.to_numeric(y, errors='coerce')
+
+    # Remove any rows with non-numeric values
+    y = y[pd.to_numeric(y, errors='coerce').notnull()]
+
     # Split the data into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
@@ -46,7 +52,7 @@ if uploaded_file is not None:
     model = GradientBoostingRegressor()
 
     # Train the model
-    model.fit(X_train.values, y_train.values)
+    model.fit(X_train.values.reshape(-1, 1), y_train.values.reshape(-1, 1))
 
     # Generate recommendations
     if direction == "Increase":
