@@ -22,15 +22,20 @@ class AttributeOptimizer:
         self.marketing_plan = None
 
     def data_preprocessing_module(self):
-        if self.preprocessing_method == 'tandard_scaler':
+        if self.preprocessing_method == 'standard_scaler':
             for col in self.dataset.columns:
                 self.dataset[col] = (self.dataset[col] - self.dataset[col].mean()) / self.dataset[col].std()
         elif self.preprocessing_method == 'min_max_scaler':
             for col in self.dataset.columns:
-                self.dataset[col] = (self.dataset[col] - self.dataset[col].min()) / (self.dataset[col].max() - self.dataset[col].min())
+                min_val = self.dataset[col].min()
+                max_val = self.dataset[col].max()
+                if max_val != min_val:
+                    self.dataset[col] = (self.dataset[col] - min_val) / (max_val - min_val)
+                else:
+                    self.dataset[col] = 0
         else:
             raise ValueError('Invalid preprocessing method')
-    
+        
         self.preprocessed_data = self.dataset
 
     def feature_engineering_module(self):
