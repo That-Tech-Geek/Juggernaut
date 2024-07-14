@@ -25,7 +25,7 @@ class AttributeOptimizer:
         if self.preprocessing_method == 'tandard_scaler':
             for col in self.dataset.columns:
                 self.dataset[col] = (self.dataset[col] - self.dataset[col].mean()) / self.dataset[col].std()
-        elif self.preprocessing_method == 'in_max_scaler':
+        elif self.preprocessing_method == 'min_max_scaler':
             for col in self.dataset.columns:
                 self.dataset[col] = (self.dataset[col] - self.dataset[col].min()) / (self.dataset[col].max() - self.dataset[col].min())
         else:
@@ -119,7 +119,7 @@ def main():
         objective = st.selectbox('Select objective', ['increase', 'decrease'])
         generate_marketing_plan = st.checkbox('Generate marketing plan')
 
-        preprocessing_method = st.selectbox('Select preprocessing method', ['standard_scaler', 'in_max_scaler'])
+        preprocessing_method = st.selectbox('Select preprocessing method', ['standard_scaler', 'min_max_scaler'])
         feature_engineering_method = st.selectbox('Select feature engineering method', ['pca', 't_sne'])
         ml_model = st.selectbox('Select machine learning model', ['random_forest'])
         correlation_analysis_threshold = st.slider('Correlation analysis threshold', 0.0, 1.0, 0.5)
