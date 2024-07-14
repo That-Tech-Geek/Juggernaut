@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import mean_squared_error
 
 # Create a file uploader
 uploaded_file = st.file_uploader("Choose a CSV or XLSX file", type=["csv", "xlsx"])
@@ -62,17 +66,39 @@ if uploaded_file is not None:
             if attribute == 'date_num':
                 st.error("Cannot select 'date_num' as the attribute to increase or decrease.")
             else:
-                X = df.drop([attribute, 'date_num'], axis=1)
+                X = df.drop([attribute], axis=1)
                 y = df[attribute]
 
                 # Split the data into training and testing sets
-                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
                 # Create a Gradient Boosting model
-                model = GradientBoostingRegressor()
+                model = GradientBoostingRegressor(random_state=42)
 
                 # Train the model
                 model.fit(X_train, y_train)
+
+                # Make predictions on the test set
+                y_pred = model.predict(X_test)
+
+                # Evaluate the model
+                mse = mean_squared_error(y_test, y_pred)
+                rmse = np.sqrt(mse)
+                st.write(f'RMSE: {rmse:.2f}')
+
+                # Plot the feature importance
+                feature_importances = model.feature_importances_
+                feature_importances_df = pd.DataFrame({'feature': X.columns, 'importance': feature_importances})
+                feature_importances_df.sort_values(by='importance', ascending=False, inplace=True)
+                st.write(feature_importances_df)
+
+                # Plot the feature importance graph
+                plt.figure(figsize=(10, 6))
+                sns.barplot(x='importance', y='feature', data=feature_importances_df)
+                plt.title('Feature Importance')
+                plt.xlabel('Importance')
+                plt.ylabel('Feature')
+                st.pyplot()
 
                 # Generate recommendations
                 if direction == "Increase":
