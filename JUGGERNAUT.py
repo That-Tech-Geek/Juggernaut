@@ -25,14 +25,11 @@ if uploaded_file is not None:
             col_idx = int(input("Enter the column number: "))
             selected_col = iso_cols[col_idx - 1]
 
-            # Replace '/' with '-' in the selected column
-            df[selected_col] = df[selected_col].str.replace('/', '-')
-
-            # Remove the last 8 indices from the selected column
-            df[selected_col] = df[selected_col].apply(lambda x: x[:-8])
-
             # Convert the selected column to a datetime object
             df[selected_col] = pd.to_datetime(df[selected_col], errors='coerce')
+
+            # Format the datetime object to 'mmddyyyy'
+            df[selected_col] = df[selected_col].dt.strftime('%m%d%Y')
 
             # Display the dataframe
             st.write(df.head())
