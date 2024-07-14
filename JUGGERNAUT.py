@@ -20,12 +20,9 @@ if uploaded_file is not None:
         # Drop duplicates
         df.drop_duplicates(inplace=True)
 
-        # Identify numeric columns
-        numeric_cols = df.select_dtypes(include=['int64', 'float64']).columns
-
-        # Iterate over numeric columns and drop rows with NaN values
-        for col in numeric_cols:
-            df.dropna(subset=[col], inplace=True)
+        # Convert all numeric columns to float
+        for col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
 
         # Display the cleaned dataframe
         st.write(df.head())
@@ -39,16 +36,6 @@ if uploaded_file is not None:
         # Prepare the data for Gradient Boosting
         X = df.drop(attribute, axis=1)
         y = df[attribute]
-
-        # Ensure y is numeric
-        y = pd.to_numeric(y, errors='coerce')
-
-        # Remove any rows with non-numeric values
-        y = y[pd.to_numeric(y, errors='coerce').notnull()]
-        X = X[y.notnull()]
-
-        # Remove rows with non-numeric values from y
-        y = y[y.notnull()]
 
         # Split the data into training and testing sets
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
