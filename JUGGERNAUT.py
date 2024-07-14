@@ -14,8 +14,8 @@ if uploaded_file is not None:
         elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
             df = pd.read_excel(uploaded_file)
 
-        # Find the column with date-time values in 'MM/DD/YYYY HH:MM:SS' format
-        date_cols = [col for col in df.columns if df[col].astype(str).str.contains(r'^\d{1,2}/\d{1,2}/\d{4} \d{2}:\d{2}:\d{2}$', na=False).any()]
+        # Find the column with date-time values in 'MM/DD/YYYY HH:MM:SS' or 'MM-DD-YYYY HH:MM:SS' format
+        date_cols = [col for col in df.columns if df[col].astype(str).str.contains(r'^\d{1,2}[/-]\d{1,2}[/-]\d{4} \d{2}:\d{2}:\d{2}$', na=False).any()]
 
         if len(date_cols) > 0:
             st.write("Select a column with date-time values:")
