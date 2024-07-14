@@ -26,7 +26,7 @@ class AttributeOptimizer:
     def data_preprocessing_module(self):
         for col in self.dataset.columns:
             self.dataset[col] = pd.to_numeric(self.dataset[col], errors='coerce')  # convert to numeric, replacing non-numeric values with NaN
-            self.dataset[col].fillna(self.dataset[col].mean(), inplace=True)  # replace NaN values with the mean of the column
+            self.dataset.dropna(inplace=True)  # remove rows with NaN values
             min_val = self.dataset[col].min()
             max_val = self.dataset[col].max()
             denominator = max_val - min_val
@@ -36,11 +36,7 @@ class AttributeOptimizer:
 
     def feature_engineering_module(self):
         self.dataset.replace([np.inf, -np.inf], np.nan, inplace=True)  # replace infinite values with NaN
-        self.dataset.fillna(self.dataset.mean(), inplace=True)  # replace NaN values with the mean of the column
-        
-        # Check for NaN values in the dataset
-        if self.dataset.isnull().values.any():
-            raise ValueError("Dataset contains NaN values")
+        self.dataset.dropna(inplace=True)  # remove rows with NaN values
         
         if self.feature_engineering_method == 'pca':
             pca = PCA(n_components=0.95)  # retain 95% of the variance
