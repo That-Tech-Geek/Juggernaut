@@ -46,7 +46,7 @@ if uploaded_file is not None:
     model = GradientBoostingRegressor()
 
     # Train the model
-    model.fit(X_train, y_train)
+    model.fit(X_train.values, y_train.values)
 
     # Generate recommendations
     if direction == "Increase":
