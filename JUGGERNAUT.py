@@ -24,6 +24,9 @@ if uploaded_file is not None:
         for col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
 
+        # Remove rows with NaN values
+        df.dropna(inplace=True)
+
         # Display the cleaned dataframe
         st.write(df.head())
 
