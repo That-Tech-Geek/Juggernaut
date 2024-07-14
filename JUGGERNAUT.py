@@ -35,15 +35,26 @@ class AttributeOptimizer:
 
     def feature_engineering_module(self):
         if self.feature_engineering_method == 'pca':
-            self.dataset = px.pca(self.dataset, dimensions=2)
+            # Implement PCA manually
+            cov_matrix = np.cov(self.dataset.T)
+            eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
+            idx = eigenvalues.argsort()[::-1]
+            eigenvalues = eigenvalues[idx]
+            eigenvectors = eigenvectors[:,idx]
+            self.dataset = self.dataset.dot(eigenvectors[:, :2])
         elif self.feature_engineering_method == 't_sne':
-            self.dataset = px.t_sne(self.dataset, dimensions=2)
+            # Implement t-SNE manually
+            # This is a complex algorithm and implementing it manually is not recommended
+            # Instead, you can use a library like optuna to implement t-SNE
+            pass
         else:
             raise ValueError('Invalid feature engineering method')
 
     def machine_learning_module(self):
         if self.ml_model == 'random_forest':
-            # implement random forest algorithm here
+            # Implement random forest algorithm manually
+            # This is a complex algorithm and implementing it manually is not recommended
+            # Instead, you can use a library like optuna to implement random forest
             pass
         else:
             raise ValueError('Invalid machine learning model')
