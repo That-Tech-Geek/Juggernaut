@@ -23,11 +23,13 @@ class AttributeOptimizer:
 
     def data_preprocessing_module(self):
         for col in self.dataset.columns:
+            self.dataset[col] = pd.to_numeric(self.dataset[col], errors='coerce')  # convert to numeric, replacing non-numeric values with NaN
+            self.dataset[col].fillna(self.dataset[col].mean(), inplace=True)  # replace NaN values with the mean of the column
             min_val = self.dataset[col].min()
             max_val = self.dataset[col].max()
             denominator = max_val - min_val
             if denominator == 0:
-                denominator = 1e-1000  # add a small value to avoid division by zero
+                denominator = 1e-10  # add a small value to avoid division by zero
             self.dataset[col] = (self.dataset[col] - min_val) / denominator
 
     def feature_engineering_module(self):
