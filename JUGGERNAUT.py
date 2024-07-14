@@ -36,29 +36,29 @@ class AttributeOptimizer:
             self.dataset[col] = (self.dataset[col] - min_val) / denominator
 
     def feature_engineering_module(self):
-        self.dataset.replace([np.inf, -np.inf], np.nan, inplace=True)  # replace infinite values with NaN
-        self.dataset.dropna(inplace=True)  # remove rows with NaN values
+    self.dataset.replace([np.inf, -np.inf], np.nan, inplace=True)  # replace infinite values with NaN
+    self.dataset.dropna(inplace=True)  # remove rows with NaN values
     
-        if self.feature_engineering_method == 'none':
-            pass
-        elif self.feature_engineering_method == 'pca':
-            X = self.dataset.drop(['bike_id'] + self.target_attributes, axis=1)  # select features
-            pca = PCA(n_components=0.95)  # retain 95% of the variance
-            X_pca = pca.fit_transform(X)
-            self.dataset = pd.concat([self.dataset[['bike_id']], pd.DataFrame(X_pca, columns=[f'PC{i+1}' for i in range(X_pca.shape[1])]), self.dataset[self.target_attributes]], axis=1)
-        elif self.feature_engineering_method == 'tandardization':
-            scaler = StandardScaler()
-            X = self.dataset.drop(['bike_id'] + self.target_attributes, axis=1)  # select features
-            X_scaled = scaler.fit_transform(X)
-            self.dataset = pd.concat([self.dataset[['bike_id']], pd.DataFrame(X_scaled, columns=X.columns), self.dataset[self.target_attributes]], axis=1)
-        elif self.feature_engineering_method == 'normalization':
-            scaler = MinMaxScaler()
-            X = self.dataset.drop(['bike_id'] + self.target_attributes, axis=1)  # select features
-            X_scaled = scaler.fit_transform(X)
-            self.dataset = pd.concat([self.dataset[['bike_id']], pd.DataFrame(X_scaled, columns=X.columns), self.dataset[self.target_attributes]], axis=1)
-        else:
-            raise ValueError("Invalid feature engineering method. Please choose from 'none', 'pca', 'tandardization', or 'normalization'.")
-        def machine_learning_module(self):
+    if self.feature_engineering_method == 'none':
+        pass
+    elif self.feature_engineering_method == 'pca':
+        X = self.dataset.drop(['bike_id', self.attribute1, self.attribute2], axis=1)  # select features
+        pca = PCA(n_components=0.95)  # retain 95% of the variance
+        X_pca = pca.fit_transform(X)
+        self.dataset = pd.concat([self.dataset[['bike_id']], pd.DataFrame(X_pca, columns=[f'PC{i+1}' for i in range(X_pca.shape[1])]), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
+    elif self.feature_engineering_method == 'tandardization':
+        scaler = StandardScaler()
+        X = self.dataset.drop(['bike_id', self.attribute1, self.attribute2], axis=1)  # select features
+        X_scaled = scaler.fit_transform(X)
+        self.dataset = pd.concat([self.dataset[['bike_id']], pd.DataFrame(X_scaled, columns=X.columns), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
+    elif self.feature_engineering_method == 'normalization':
+        scaler = MinMaxScaler()
+        X = self.dataset.drop(['bike_id', self.attribute1, self.attribute2], axis=1)  # select features
+        X_scaled = scaler.fit_transform(X)
+        self.dataset = pd.concat([self.dataset[['bike_id']], pd.DataFrame(X_scaled, columns=X.columns), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
+    else:
+        raise ValueError("Invalid feature engineering method. Please choose from 'none', 'pca', 'standardization', or 'normalization'.")
+        
             if self.ml_model == 'random_forest':
                 X = self.dataset.drop(self.target_attributes, axis=1)
                 y = self.dataset[self.target_attributes]
