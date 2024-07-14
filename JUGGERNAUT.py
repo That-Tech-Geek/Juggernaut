@@ -1,7 +1,11 @@
 import pandas as pd
 import streamlit as st
-import plotly.express as px
 import numpy as np
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
 
 class AttributeOptimizer:
     def __init__(self, dataset, target_attributes, objective, generate_marketing_plan=False, 
@@ -22,7 +26,7 @@ class AttributeOptimizer:
         self.marketing_plan = None
 
     def data_preprocessing_module(self):
-        if self.preprocessing_method == 'tandard_scaler':
+        if self.preprocessing_method == 'standard_scaler':
             self.dataset[self.dataset.columns] = (self.dataset[self.dataset.columns] - self.dataset[self.dataset.columns].mean()) / self.dataset[self.dataset.columns].std()
         elif self.preprocessing_method == 'in_max_scaler':
             self.dataset[self.dataset.columns] = (self.dataset[self.dataset.columns] - self.dataset[self.dataset.columns].min()) / (self.dataset[self.dataset.columns].max() - self.dataset[self.dataset.columns].min())
@@ -33,15 +37,16 @@ class AttributeOptimizer:
 
     def feature_engineering_module(self):
         if self.feature_engineering_method == 'pca':
-            self.dataset = px.pca(self.dataset, dimensions=2)
+            pca = PCA(n_components=2)
+            self.dataset = pca.fit_transform(self.dataset)
         elif self.feature_engineering_method == 't_sne':
-            self.dataset = px.t_sne(self.dataset, dimensions=2)
+            tsne = TSNE(n_components=2)
+            self.dataset = tsne.fit_transform(self.dataset)
         else:
             raise ValueError('Invalid feature engineering method')
 
     def machine_learning_module(self):
         if self.ml_model == 'random_forest':
-            from sklearn.ensemble import RandomForestRegressor
             rf = RandomForestRegressor(n_estimators=100, random_state=42)
             X = self.preprocessed_data.drop(self.target_attributes, axis=1)
             y = self.preprocessed_data[self.target_attributes]
@@ -107,7 +112,7 @@ def main():
     st.title('Attribute Optimizer')
     st.write('Welcome to the Attribute Optimizer!')
 
-    dataset= st.file_uploader('Upload your dataset', type=['csv', 'xlsx'])
+    dataset=st.file_uploader('Upload your dataset', type=['csv', 'xlsx'])
     if dataset is not None:
         dataset = pd.read_csv(dataset) if dataset.name.endswith('.csv') else pd.read_excel(dataset)
 
