@@ -15,7 +15,7 @@ if uploaded_file is not None:
             df = pd.read_excel(uploaded_file)
 
         # Find the column with date-time values
-        iso_cols = [col for col in df.select_dtypes(include=[object]).columns if df[col].str.contains(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:?\d{2})?$', na=False).any()]
+        iso_cols = [col for col in df.select_dtypes(include=[object]).columns if df[col].str.replace('/', '-').str.contains(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:?\d{2})?$', na=False).any()]
 
         if len(iso_cols) > 0:
             print("Select a column with ISO8601 format:")
@@ -24,6 +24,9 @@ if uploaded_file is not None:
 
             col_idx = int(input("Enter the column number: "))
             selected_col = iso_cols[col_idx - 1]
+
+            # Replace '/' with '-' in the selected column
+            df[selected_col] = df[selected_col].str.replace('/', '-')
 
             # Remove the last 8 indices from the selected column
             df[selected_col] = df[selected_col].apply(lambda x: x[:-8])
