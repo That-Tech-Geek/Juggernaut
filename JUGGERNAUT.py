@@ -14,25 +14,22 @@ if uploaded_file is not None:
         elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
             df = pd.read_excel(uploaded_file)
 
-        # Replace '/' with '-' in all columns
-        df = df.apply(lambda x: x.str.replace('/', '-') if x.dtype == 'object' else x)
+        # Find the column with date-time values in 'MM/DD/YYYY HH:MM:SS' format
+        date_cols = [col for col in df.select_dtypes(include=[object]).columns if df[col].str.contains(r'^\d{1,2}/\d{1,2}/\d{4} \d{2}:\d{2}:\d{2}$', na=False).any()]
 
-        # Find the column with date-time values
-        iso_cols = [col for col in df.select_dtypes(include=[object]).columns if df[col].str.contains(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:?\d{2})?$', na=False).any()]
-
-        if len(iso_cols) > 0:
-            print("Select a column with ISO8601 format:")
-            for i, col in enumerate(iso_cols):
+        if len(date_cols) > 0:
+            print("Select a column with date-time values:")
+            for i, col in enumerate(date_cols):
                 print(f"{i+1}. {col}")
 
             col_idx = int(input("Enter the column number: "))
-            selected_col = iso_cols[col_idx - 1]
+            selected_col = date_cols[col_idx - 1]
 
             # Convert the selected column to a datetime object
-            df[selected_col] = pd.to_datetime(df[selected_col], errors='coerce')
+            df[selected_col] = pd.to_datetime(df[selected_col], errors='coerce', dayfirst=True)
 
-            # Format the datetime object to 'mmddyyyy'
-            df[selected_col] = df[selected_col].dt.strftime('%m%d%Y')
+            # Format the datetime object to 'DDMMYYYY'
+            df[selected_col] = df[selected_col].dt.strftime('%d%m%Y')
 
             # Display the dataframe
             st.write(df.head())
@@ -68,7 +65,7 @@ if uploaded_file is not None:
                 st.write(f"{i+1}. {X.columns[rec]}")
 
         else:
-            st.error("No columns with ISO8601 format found.")
+            st.error("No columns with date-time values found.")
 
     except Exception as e:
         st.error(f"Error: {e}")
