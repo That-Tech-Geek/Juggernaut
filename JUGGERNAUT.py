@@ -2,14 +2,14 @@ import pandas as pd
 import streamlit as st
 import numpy as np
 import plotly.express as px
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 class AttributeOptimizer:
     def __init__(self, dataset, attribute1, attribute2, objective, generate_marketing_plan=False, 
                  preprocessing_method='standard_scaler', feature_engineering_method='pca', 
-                 ml_model='random_forest', correlation_analysis_threshold=0.5):
+                 ml_model='gradient_boosting', correlation_analysis_threshold=0.5):
         self.dataset = dataset
         self.attribute1 = attribute1
         self.attribute2 = attribute2
@@ -51,7 +51,7 @@ class AttributeOptimizer:
             pca = PCA(n_components=0.95)  # retain 95% of the variance
             X_pca = pca.fit_transform(X)
             self.dataset = pd.concat([self.dataset[[id_column]], pd.DataFrame(X_pca, columns=[f'PC{i+1}' for i in range(X_pca.shape[1])]), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
-        elif self.feature_engineering_method == 'tandardization':
+        elif self.feature_engineering_method == 'standardization':
             scaler = StandardScaler()
             X_scaled = scaler.fit_transform(X)
             self.dataset = pd.concat([self.dataset[[id_column]], pd.DataFrame(X_scaled, columns=X.columns), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
@@ -60,13 +60,13 @@ class AttributeOptimizer:
             X_scaled = scaler.fit_transform(X)
             self.dataset = pd.concat([self.dataset[[id_column]], pd.DataFrame(X_scaled, columns=X.columns), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
         else:
-            raise ValueError("Invalid feature engineering method. Please choose from 'none', 'pca', 'tandardization', or 'normalization'.")
+            raise ValueError("Invalid feature engineering method. Please choose from 'none', 'pca', 'standardization', or 'normalization'.")
         
-        if self.ml_model == 'random_forest':
+        if self.ml_model == 'gradient_boosting':
             y = self.dataset[[self.attribute1, self.attribute2]]
-            clf = RandomForestClassifier(n_estimators=100, random_state=42)
-            clf.fit(X, y)
-            self.feature_importances = clf.feature_importances_
+            gb_model = GradientBoostingRegressor(n_estimators=100, random_state=42)
+            gb_model.fit(X, y)
+            self.feature_importances = gb_model.feature_importances_
         else:
             raise ValueError('Invalid machine learning model')
 
@@ -136,12 +136,12 @@ def main():
         optimizer.feature_engineering_module()
         optimizer.correlation_analysis_module()
         optimizer.solution_generation_module()
-        optimizer.solution_ranking_module()
+        ranked_solutions = optimizer.solution_ranking_module()
         optimizer.marketing_plan_generation_module()
 
         st.write('## Solutions:')
-        for i, solution in enumerate(optimizer.solutions):
-            st.write(f'{i+1}. {solution}')
+        for i, solution in enumerate(ranked_solutions):
+            st.write(f'{i+1}. {solution[0]} (Score: {solution[1]:.2f})')
 
         if generate_marketing_plan:
             st.write('## Marketing Plan:')
