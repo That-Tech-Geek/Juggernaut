@@ -1,11 +1,6 @@
 import pandas as pd
 import streamlit as st
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.model_selection import train_test_split
-import optuna
+import plotly.express as px
 import numpy as np
 
 class AttributeOptimizer:
@@ -28,12 +23,9 @@ class AttributeOptimizer:
 
     def data_preprocessing_module(self):
         if self.preprocessing_method == 'tandard_scaler':
-            scaler = StandardScaler()
-            self.dataset[self.dataset.columns] = scaler.fit_transform(self.dataset[self.dataset.columns])
+            self.dataset[self.dataset.columns] = (self.dataset[self.dataset.columns] - self.dataset[self.dataset.columns].mean()) / self.dataset[self.dataset.columns].std()
         elif self.preprocessing_method == 'in_max_scaler':
-            from sklearn.preprocessing import MinMaxScaler
-            scaler = MinMaxScaler()
-            self.dataset[self.dataset.columns] = scaler.fit_transform(self.dataset[self.dataset.columns])
+            self.dataset[self.dataset.columns] = (self.dataset[self.dataset.columns] - self.dataset[self.dataset.columns].min()) / (self.dataset[self.dataset.columns].max() - self.dataset[self.dataset.columns].min())
         else:
             raise ValueError('Invalid preprocessing method')
 
@@ -41,17 +33,15 @@ class AttributeOptimizer:
 
     def feature_engineering_module(self):
         if self.feature_engineering_method == 'pca':
-            pca = PCA(n_components=0.95)
-            self.dataset = pca.fit_transform(self.dataset)
+            self.dataset = px.pca(self.dataset, dimensions=2)
         elif self.feature_engineering_method == 't_sne':
-            from sklearn.manifold import TSNE
-            tsne = TSNE(n_components=2, random_state=42)
-            self.dataset = tsne.fit_transform(self.dataset)
+            self.dataset = px.t_sne(self.dataset, dimensions=2)
         else:
             raise ValueError('Invalid feature engineering method')
 
     def machine_learning_module(self):
         if self.ml_model == 'random_forest':
+            from sklearn.ensemble import RandomForestRegressor
             rf = RandomForestRegressor(n_estimators=100, random_state=42)
             X = self.preprocessed_data.drop(self.target_attributes, axis=1)
             y = self.preprocessed_data[self.target_attributes]
