@@ -14,6 +14,9 @@ if uploaded_file is not None:
         elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
             df = pd.read_excel(uploaded_file)
 
+        # Convert the date-time column to a datetime object
+        df['date_time'] = pd.to_datetime(df['date_time'])
+
         # Display the dataframe
         st.write(df.head())
 
