@@ -51,7 +51,7 @@ if uploaded_file is not None:
             df['date_num'] = (df['day'] * 1000000) + (df['month'] * 10000) + df['year']
 
             # Drop the original date-time column and the separate date features
-            df.drop([selected_col, 'year', 'month', 'day'], axis=1, inplace=True)
+            df.drop([selected_col, 'year', 'onth', 'day'], axis=1, inplace=True)
 
             # Display the dataframe
             st.write(df.head())
@@ -110,9 +110,3 @@ if uploaded_file is not None:
                 st.write("Recommendations:")
                 for i, rec in enumerate(recommendations):
                     st.write(f"{i+1}. {X.columns[rec]}")
-
-        else:
-            st.error("No columns with date-time values found.")
-
-    except Exception as e:
-        st.error(f"Error: {e}")
