@@ -14,20 +14,7 @@ if uploaded_file is not None:
         elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
             df = pd.read_excel(uploaded_file)
 
-        # Drop rows with empty cells
-        df.dropna(inplace=True)
-
-        # Drop duplicates
-        df.drop_duplicates(inplace=True)
-
-        # Convert all numeric columns to float
-        for col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors='coerce')
-
-        # Remove rows with NaN values
-        df.dropna(inplace=True)
-
-        # Display the cleaned dataframe
+        # Display the dataframe
         st.write(df.head())
 
         # Ask the user to select an attribute to increase or decrease
@@ -41,7 +28,7 @@ if uploaded_file is not None:
         y = df[attribute]
 
         # Split the data into training and testing sets
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
 
         # Create a Gradient Boosting model
         model = GradientBoostingRegressor()
