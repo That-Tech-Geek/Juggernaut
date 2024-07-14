@@ -44,9 +44,10 @@ if uploaded_file is not None:
 
     # Remove any rows with non-numeric values
     y = y[pd.to_numeric(y, errors='coerce').notnull()]
-
-    # Remove rows with non-numeric values from X
     X = X[y.notnull()]
+
+    # Remove rows with non-numeric values from y
+    y = y[y.notnull()]
 
     # Split the data into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
