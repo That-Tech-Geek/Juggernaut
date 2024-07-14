@@ -30,7 +30,13 @@ if uploaded_file is not None:
         df[date_time_col] = pd.to_datetime(df[date_time_col])
 
         # Convert the datetime object to DDMMYYYY format
-        df[date_time_col] = df[date_time_col].dt.strftime('%d%m%Y')
+        df[date_time_col] = df[date_time_col].dt.strftime('%d%m%Y').astype(str)
+
+        # Convert the DDMMYYYY column to a separate day, month, and year column
+        df[['day', 'month', 'year']] = df[date_time_col].str.extract(r'(?P<day>\d{2})(?P<month>\d{2})(?P<year>\d{4})', expand=True)
+
+        # Drop the original date-time column
+        df.drop(date_time_col, axis=1, inplace=True)
 
         # Display the dataframe
         st.write(df.head())
