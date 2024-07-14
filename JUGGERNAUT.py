@@ -48,6 +48,17 @@ class AttributeOptimizer:
         y = self.dataset[[self.attribute1, self.attribute2]]
         
         scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)  # no need to use X.values
+        
+        self.dataset = pd.concat([self.dataset[[id_column]], pd.DataFrame(X_scaled, columns=X.columns), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
+        
+        gb_model = GradientBoostingRegressor(n_estimators=100, random_state=42)
+        gb_model.fit(X_scaled, y.values)  # use y.values to ensure a numpy array
+        self.feature_importances = gb_model.feature_importances_
+        
+        return self.dataset, self.feature_importances
+        
+        scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X.values)  # use X.values to ensure a numpy array
         
         self.dataset = pd.concat([self.dataset[[id_column]], pd.DataFrame(X_scaled, columns=X.columns), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
