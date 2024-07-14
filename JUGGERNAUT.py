@@ -14,8 +14,23 @@ if uploaded_file is not None:
         elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
             df = pd.read_excel(uploaded_file)
 
+        # Find the column with date-time values
+        for col in df.columns:
+            if df[col].dtype == 'object':
+                try:
+                    pd.to_datetime(df[col], errors='coerce')
+                    date_time_col = col
+                    break
+                except ValueError:
+                    pass
+            else:
+                continue
+
         # Convert the date-time column to a datetime object
-        df['date_time'] = pd.to_datetime(df['start_time'])
+        df[date_time_col] = pd.to_datetime(df[date_time_col])
+
+        # Convert the datetime object to DDMMYYYY format
+        df[date_time_col] = df[date_time_col].dt.strftime('%d%m%Y')
 
         # Display the dataframe
         st.write(df.head())
