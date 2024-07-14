@@ -23,12 +23,14 @@ class AttributeOptimizer:
 
     def data_preprocessing_module(self):
         if self.preprocessing_method == 'tandard_scaler':
-            self.dataset[self.dataset.columns] = (self.dataset[self.dataset.columns] - self.dataset[self.dataset.columns].mean()) / self.dataset[self.dataset.columns].std()
+            for col in self.dataset.columns:
+                self.dataset[col] = (self.dataset[col] - self.dataset[col].mean()) / self.dataset[col].std()
         elif self.preprocessing_method == 'in_max_scaler':
-            self.dataset[self.dataset.columns] = (self.dataset[self.dataset.columns] - self.dataset[self.dataset.columns].min()) / (self.dataset[self.dataset.columns].max() - self.dataset[self.dataset.columns].min())
+            for col in self.dataset.columns:
+                self.dataset[col] = (self.dataset[col] - self.dataset[col].min()) / (self.dataset[col].max() - self.dataset[col].min())
         else:
             raise ValueError('Invalid preprocessing method')
-
+    
         self.preprocessed_data = self.dataset
 
     def feature_engineering_module(self):
