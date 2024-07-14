@@ -40,6 +40,8 @@ class AttributeOptimizer:
         
         if self.feature_engineering_method == 'pca':
             pca = PCA(n_components=0.95)  # retain 95% of the variance
+            if self.dataset.ndim != 2:
+                raise ValueError("Input data must be a 2D array or matrix")
             self.dataset = pca.fit_transform(self.dataset)
 
     def machine_learning_module(self):
@@ -112,15 +114,7 @@ def main():
         objective = st.selectbox('Select objective', ['increase', 'decrease'])
         generate_marketing_plan = st.checkbox('Generate marketing plan')
 
-        preprocessing_method = st.selectbox('Select preprocessing method', ['standard_scaler', 'in_max_scaler'])
-        feature_engineering_method = st.selectbox('Select feature engineering method', ['pca', 't_sne'])
-        ml_model = st.selectbox('Select machine learning model', ['random_forest'])
-        correlation_analysis_threshold = st.slider('Correlation analysis threshold', 0.0, 1.0, 0.5)
-
-        optimizer = AttributeOptimizer(dataset, target_attributes, objective, generate_marketing_plan, 
-                                        preprocessing_method, feature_engineering_method, ml_model, 
-                                        correlation_analysis_threshold)
-
+        optimizer = AttributeOptimizer(dataset, target_attributes, objective, generate_marketing_plan)
         optimizer.data_preprocessing_module()
         optimizer.feature_engineering_module()
         optimizer.machine_learning_module()
@@ -129,14 +123,18 @@ def main():
         optimizer.solution_ranking_module()
         optimizer.marketing_plan_generation_module()
 
-        st.write('Solutions:')
-        for solution, score in optimizer.solution_ranking_module():
-            st.write(f'{solution}: {score:.2f}')
+        st.write('## Solutions:')
+        for i, solution in enumerate(optimizer.solutions):
+            st.write(f'{i+1}. {solution}')
 
-        if optimizer.generate_marketing_plan:
-            st.write('Marketing Plan:')
-            for plan in optimizer.marketing_plan:
-                st.write(plan)
+        if generate_marketing_plan:
+            st.write('## Marketing Plan:')
+            for i, plan in enumerate(optimizer.marketing_plan):
+                st.write(f'{i+1}. {plan}')
+
+        st.write('## Correlation Matrix:')
+        fig = px.imshow(optimizer.correlation_matrix, color_continuous_scale='RdBu_r')
+        st.plotly_chart(fig)
 
 if __name__ == '__main__':
     main()
