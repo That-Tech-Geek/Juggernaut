@@ -15,7 +15,7 @@ if uploaded_file is not None:
             df = pd.read_excel(uploaded_file)
 
         # Convert the date-time column to a datetime object
-        df['date_time'] = pd.to_datetime(df['date_time'])
+        df['date_time'] = pd.to_datetime(df['start_time'])
 
         # Display the dataframe
         st.write(df.head())
