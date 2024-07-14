@@ -2,6 +2,8 @@ import pandas as pd
 import streamlit as st
 import numpy as np
 import plotly.express as px
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.decomposition import PCA
 
 class AttributeOptimizer:
     def __init__(self, dataset, target_attributes, objective, generate_marketing_plan=False, 
@@ -35,15 +37,22 @@ class AttributeOptimizer:
     def feature_engineering_module(self):
         self.dataset.replace([np.inf, -np.inf], np.nan, inplace=True)  # replace infinite values with NaN
         self.dataset.fillna(self.dataset.mean(), inplace=True)  # replace NaN values with the mean of the column
-        cov_matrix = np.cov(self.dataset.T)  # compute the covariance matrix
-        eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)  # compute the eigenvalues and eigenvectors
+        
+        # Check for NaN values in the dataset
+        if self.dataset.isnull().values.any():
+            raise ValueError("Dataset contains NaN values")
+        
+        if self.feature_engineering_method == 'pca':
+            pca = PCA(n_components=0.95)  # retain 95% of the variance
+            self.dataset = pca.fit_transform(self.dataset)
 
     def machine_learning_module(self):
         if self.ml_model == 'random_forest':
-            # Implement random forest algorithm manually
-            # This is a complex algorithm and implementing it manually is not recommended
-            # Instead, you can use a library like optuna to implement random forest
-            pass
+            X = self.dataset.drop(self.target_attributes, axis=1)
+            y = self.dataset[self.target_attributes]
+            clf = RandomForestClassifier(n_estimators=100, random_state=42)
+            clf.fit(X, y)
+            self.feature_importances = clf.feature_importances_
         else:
             raise ValueError('Invalid machine learning model')
 
@@ -107,7 +116,7 @@ def main():
         objective = st.selectbox('Select objective', ['increase', 'decrease'])
         generate_marketing_plan = st.checkbox('Generate marketing plan')
 
-        preprocessing_method = st.selectbox('Select preprocessing method', ['standard_scaler', 'min_max_scaler'])
+        preprocessing_method = st.selectbox('Select preprocessing method', ['standard_scaler', 'in_max_scaler'])
         feature_engineering_method = st.selectbox('Select feature engineering method', ['pca', 't_sne'])
         ml_model = st.selectbox('Select machine learning model', ['random_forest'])
         correlation_analysis_threshold = st.slider('Correlation analysis threshold', 0.0, 1.0, 0.5)
