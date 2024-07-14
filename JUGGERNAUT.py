@@ -1,45 +1,60 @@
 import streamlit as st
-import xgboost as xgb
-from sklearn.datasets import load_boston
-from sklearn.model_selection import train_test_split
-import joblib
 import pandas as pd
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.model_selection import train_test_split
 
-# Load the Boston housing dataset
-boston = load_boston()
-X, y = boston.data, boston.target
+# Create a file uploader
+uploaded_file = st.file_uploader("Choose a CSV or XLSX file", type=["csv", "xlsx"])
 
-# Convert y to a Pandas Series
-y = pd.Series(y)
+if uploaded_file is not None:
+    # Read the uploaded file
+    if uploaded_file.type == "text/csv":
+        df = pd.read_csv(uploaded_file)
+    elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+        df = pd.read_excel(uploaded_file)
 
-# Check for missing values in y
-if y.isnull().sum() > 0:
-    # Impute missing values with the mean
-    y.fillna(y.mean(), inplace=True)
+    # Drop rows with empty cells
+    df.dropna(inplace=True)
 
-# Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    # Drop duplicates
+    df.drop_duplicates(inplace=True)
 
-# Convert y_train to a NumPy array
-y_train_num = pd.to_numeric(y_train, errors='coerce')
+    # Identify numeric columns
+    numeric_cols = df.select_dtypes(include=['int64', 'float64']).columns
 
-# Train an XGBoost model
-model = xgb.XGBRegressor()
-model.fit(X_train, y_train_num)
+    # Iterate over numeric columns and drop rows with NaN values
+    for col in numeric_cols:
+        df.dropna(subset=[col], inplace=True)
 
-# Serialize the model using joblib
-joblib.dump(model, 'xgb_model.joblib')
+    # Display the cleaned dataframe
+    st.write(df.head())
 
-# Create a Streamlit app
-st.title("XGBoost Model")
+    # Ask the user to select an attribute to increase or decrease
+    attribute = st.selectbox("Select an attribute to increase or decrease", df.columns)
 
-# Load the serialized model
-model = joblib.load('xgb_model.joblib')
+    # Ask the user to select the direction (increase or decrease)
+    direction = st.selectbox("Select the direction", ["Increase", "Decrease"])
 
-# Make predictions on the testing set
-y_pred = model.predict(X_test)
+    # Prepare the data for Gradient Boosting
+    X = df.drop(attribute, axis=1)
+    y = df[attribute]
 
-# Visualize the results
-st.write("Mean Squared Error:", mean_squared_error(y_test, y_pred))
-st.write("Feature Importances:")
-st.write(model.feature_importances_)
+    # Split the data into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Create a Gradient Boosting model
+    model = GradientBoostingRegressor()
+
+    # Train the model
+    model.fit(X_train, y_train)
+
+    # Generate recommendations
+    if direction == "Increase":
+        recommendations = model.feature_importances_.argsort()[-10:][::-1]
+    else:
+        recommendations = model.feature_importances_.argsort()[:10]
+
+    # Display the recommendations
+    st.write("Recommendations:")
+    for i, rec in enumerate(recommendations):
+        st.write(f"{i+1}. {X.columns[rec]}")
