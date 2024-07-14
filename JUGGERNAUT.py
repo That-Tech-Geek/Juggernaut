@@ -37,22 +37,35 @@ class AttributeOptimizer:
     def feature_engineering_module(self):
         self.dataset.replace([np.inf, -np.inf], np.nan, inplace=True)  # replace infinite values with NaN
         self.dataset.dropna(inplace=True)  # remove rows with NaN values
-        
-        if self.feature_engineering_method == 'pca':
+    
+        if self.feature_engineering_method == 'none':
+            pass
+        elif self.feature_engineering_method == 'pca':
+            X = self.dataset.drop(['bike_id'] + self.target_attributes, axis=1)  # select features
             pca = PCA(n_components=0.95)  # retain 95% of the variance
-            if self.dataset.ndim != 2:
-                raise ValueError("Input data must be a 2D array or matrix")
-            self.dataset = pca.fit_transform(self.dataset)
-
-    def machine_learning_module(self):
-        if self.ml_model == 'random_forest':
-            X = self.dataset.drop(self.target_attributes, axis=1)
-            y = self.dataset[self.target_attributes]
-            clf = RandomForestClassifier(n_estimators=100, random_state=42)
-            clf.fit(X, y)
-            self.feature_importances = clf.feature_importances_
+            X_pca = pca.fit_transform(X)
+            self.dataset = pd.concat([self.dataset[['bike_id']], pd.DataFrame(X_pca, columns=[f'PC{i+1}' for i in range(X_pca.shape[1])]), self.dataset[self.target_attributes]], axis=1)
+        elif self.feature_engineering_method == 'tandardization':
+            scaler = StandardScaler()
+            X = self.dataset.drop(['bike_id'] + self.target_attributes, axis=1)  # select features
+            X_scaled = scaler.fit_transform(X)
+            self.dataset = pd.concat([self.dataset[['bike_id']], pd.DataFrame(X_scaled, columns=X.columns), self.dataset[self.target_attributes]], axis=1)
+        elif self.feature_engineering_method == 'normalization':
+            scaler = MinMaxScaler()
+            X = self.dataset.drop(['bike_id'] + self.target_attributes, axis=1)  # select features
+            X_scaled = scaler.fit_transform(X)
+            self.dataset = pd.concat([self.dataset[['bike_id']], pd.DataFrame(X_scaled, columns=X.columns), self.dataset[self.target_attributes]], axis=1)
         else:
-            raise ValueError('Invalid machine learning model')
+            raise ValueError("Invalid feature engineering method. Please choose from 'none', 'pca', 'tandardization', or 'normalization'.")
+        def machine_learning_module(self):
+            if self.ml_model == 'random_forest':
+                X = self.dataset.drop(self.target_attributes, axis=1)
+                y = self.dataset[self.target_attributes]
+                clf = RandomForestClassifier(n_estimators=100, random_state=42)
+                clf.fit(X, y)
+                self.feature_importances = clf.feature_importances_
+            else:
+                raise ValueError('Invalid machine learning model')
 
     def correlation_analysis_module(self):
         self.correlation_matrix = self.dataset.corr()
