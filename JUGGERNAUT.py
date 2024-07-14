@@ -28,9 +28,8 @@ class AttributeOptimizer:
             if max_val != min_val:
                 self.dataset[col] = (self.dataset[col] - min_val) / (max_val - min_val)
             else:
-                self.dataset[col] = 0
-            
-            self.preprocessed_data = self.dataset
+                print(f"Warning: Column '{col}' has the same min and max values, cannot be normalized.")
+                # You can also raise an error or warning here if you want
 
     def feature_engineering_module(self):
         if self.feature_engineering_method == 'pca':
