@@ -14,8 +14,8 @@ if uploaded_file is not None:
         elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
             df = pd.read_excel(uploaded_file)
 
-        # Find the column with date-time values in 'MM/DD/YYYY HH:MM:SS' or 'MM-DD-YYYY HH:MM:SS' format
-        date_cols = [col for col in df.columns if df[col].astype(str).str.contains(r'^\d{1,2}[/-]\d{1,2}[/-]\d{4} \d{2}:\d{2}:\d{2}$', na=False).any()]
+        # Find the column with date-time values in 'MM/DD/YYYY HH:MM:SS' format
+        date_cols = [col for col in df.columns if df[col].astype(str).str.contains(r'^\d{1,2}/\d{1,2}/\d{4} \d{2}:\d{2}:\d{2}$', na=False).any()]
 
         if len(date_cols) > 0:
             st.write("Select a column with date-time values:")
@@ -25,8 +25,15 @@ if uploaded_file is not None:
             col_idx = st.number_input("Enter the column number:", min_value=1, max_value=len(date_cols), value=1)
             selected_col = date_cols[col_idx - 1]
 
-            # Convert the selected column to a datetime object
-            df[selected_col] = pd.to_datetime(df[selected_col], errors='coerce', dayfirst=True)
+            try:
+                # Convert the selected column to a datetime object with '/' as delimiter
+                df[selected_col] = pd.to_datetime(df[selected_col], errors='coerce', dayfirst=True, format='%m/%d/%Y %H:%M:%S')
+            except ValueError:
+                try:
+                    # Convert the selected column to a datetime object with '-' as delimiter
+                    df[selected_col] = pd.to_datetime(df[selected_col], errors='coerce', dayfirst=True, format='%m-%d-%Y %H:%M:%S')
+                except ValueError:
+                    st.error("Invalid date format. Please use 'MM/DD/YYYY HH:MM:SS' or 'MM-DD-YYYY HH:MM:SS' format.")
 
             # Format the datetime object to 'DDMMYYYY'
             df[selected_col] = df[selected_col].dt.strftime('%d%m%Y')
