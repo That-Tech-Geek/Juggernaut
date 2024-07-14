@@ -6,11 +6,12 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.decomposition import PCA
 
 class AttributeOptimizer:
-    def __init__(self, dataset, target_attributes, objective, generate_marketing_plan=False, 
+    def __init__(self, dataset, attribute1, attribute2, objective, generate_marketing_plan=False, 
                  preprocessing_method='standard_scaler', feature_engineering_method='pca', 
                  ml_model='random_forest', correlation_analysis_threshold=0.5):
         self.dataset = dataset
-        self.target_attributes = target_attributes
+        self.attribute1 = attribute1
+        self.attribute2 = attribute2
         self.objective = objective
         self.generate_marketing_plan = generate_marketing_plan
         self.preprocessing_method = preprocessing_method
@@ -119,15 +120,16 @@ def main():
     st.title('Attribute Optimizer')
     st.write('Welcome to the Attribute Optimizer!')
 
-    dataset= st.file_uploader('Upload your dataset', type=['csv', 'xlsx'])
+    dataset = st.file_uploader('Upload your dataset', type=['csv', 'xlsx'])
     if dataset is not None:
         dataset = pd.read_csv(dataset) if dataset.name.endswith('.csv') else pd.read_excel(dataset)
 
-        target_attributes = st.multiselect('Select target attributes', dataset.columns)
+        attribute1 = st.selectbox('Select first attribute', dataset.columns)
+        attribute2 = st.selectbox('Select second attribute', dataset.columns)
         objective = st.selectbox('Select objective', ['increase', 'decrease'])
         generate_marketing_plan = st.checkbox('Generate marketing plan')
 
-        optimizer = AttributeOptimizer(dataset, target_attributes, objective, generate_marketing_plan)
+        optimizer = AttributeOptimizer(dataset, attribute1, attribute2, objective, generate_marketing_plan)
         optimizer.data_preprocessing_module()
         optimizer.feature_engineering_module()
         optimizer.machine_learning_module()
@@ -151,3 +153,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
