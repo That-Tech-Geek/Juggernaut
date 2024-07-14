@@ -4,6 +4,7 @@ import numpy as np
 import plotly.express as px
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 class AttributeOptimizer:
     def __init__(self, dataset, attribute1, attribute2, objective, generate_marketing_plan=False, 
@@ -35,38 +36,40 @@ class AttributeOptimizer:
                 denominator = 1e-10  # add a small value to avoid division by zero
             self.dataset[col] = (self.dataset[col] - min_val) / denominator
 
-        def feature_engineering_module(self):
+    def feature_engineering_module(self):
         self.dataset.replace([np.inf, -np.inf], np.nan, inplace=True)  # replace infinite values with NaN
         self.dataset.dropna(inplace=True)  # remove rows with NaN values
+        
+        id_column = [col for col in self.dataset.columns if 'id' in col.lower()][0]
         
         if self.feature_engineering_method == 'none':
             pass
         elif self.feature_engineering_method == 'pca':
-            X = self.dataset.drop(['bike_id', self.attribute1, self.attribute2], axis=1)  # select features
+            X = self.dataset.drop([id_column, self.attribute1, self.attribute2], axis=1)  # select features
             pca = PCA(n_components=0.95)  # retain 95% of the variance
             X_pca = pca.fit_transform(X)
-            self.dataset = pd.concat([self.dataset[['bike_id']], pd.DataFrame(X_pca, columns=[f'PC{i+1}' for i in range(X_pca.shape[1])]), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
-        elif self.feature_engineering_method == 'tandardization':
+            self.dataset = pd.concat([self.dataset[[id_column]], pd.DataFrame(X_pca, columns=[f'PC{i+1}' for i in range(X_pca.shape[1])]), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
+        elif self.feature_engineering_method == 'standardization':
             scaler = StandardScaler()
-            X = self.dataset.drop(['bike_id', self.attribute1, self.attribute2], axis=1)  # select features
+            X = self.dataset.drop([id_column, self.attribute1, self.attribute2], axis=1)  # select features
             X_scaled = scaler.fit_transform(X)
-            self.dataset = pd.concat([self.dataset[['bike_id']], pd.DataFrame(X_scaled, columns=X.columns), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
+            self.dataset = pd.concat([self.dataset[[id_column]], pd.DataFrame(X_scaled, columns=X.columns), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
         elif self.feature_engineering_method == 'normalization':
             scaler = MinMaxScaler()
-            X = self.dataset.drop(['bike_id', self.attribute1, self.attribute2], axis=1)  # select features
+            X = self.dataset.drop([id_column, self.attribute1, self.attribute2], axis=1)  # select features
             X_scaled = scaler.fit_transform(X)
-            self.dataset = pd.concat([self.dataset[['bike_id']], pd.DataFrame(X_scaled, columns=X.columns), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
+            self.dataset = pd.concat([self.dataset[[id_column]], pd.DataFrame(X_scaled, columns=X.columns), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
         else:
             raise ValueError("Invalid feature engineering method. Please choose from 'none', 'pca', 'standardization', or 'normalization'.")
         
-            if self.ml_model == 'random_forest':
-                X = self.dataset.drop(self.target_attributes, axis=1)
-                y = self.dataset[self.target_attributes]
-                clf = RandomForestClassifier(n_estimators=100, random_state=42)
-                clf.fit(X, y)
-                self.feature_importances = clf.feature_importances_
-            else:
-                raise ValueError('Invalid machine learning model')
+        if self.ml_model == 'random_forest':
+            X = self.dataset.drop([id_column, self.attribute1, self.attribute2], axis=1)
+            y = self.dataset[[self.attribute1, self.attribute2]]
+            clf = RandomForestClassifier(n_estimators=100, random_state=42)
+            clf.fit(X, y)
+            self.feature_importances = clf.feature_importances_
+        else:
+            raise ValueError('Invalid machine learning model')
 
     def correlation_analysis_module(self):
         self.correlation_matrix = self.dataset.corr()
@@ -82,7 +85,7 @@ class AttributeOptimizer:
         for opportunity in opportunities:
             feature, column = opportunity
             if self.objective == 'increase':
-                solutions.append(f'Increase {column} by 10%')
+                solutions.append(f'Increase {column}by 10%')
             else:
                 solutions.append(f'Decrease {column} by 10%')
 
@@ -132,7 +135,6 @@ def main():
         optimizer = AttributeOptimizer(dataset, attribute1, attribute2, objective, generate_marketing_plan)
         optimizer.data_preprocessing_module()
         optimizer.feature_engineering_module()
-        optimizer.machine_learning_module()
         optimizer.correlation_analysis_module()
         optimizer.solution_generation_module()
         optimizer.solution_ranking_module()
@@ -153,4 +155,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
