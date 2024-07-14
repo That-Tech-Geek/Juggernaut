@@ -42,28 +42,27 @@ class AttributeOptimizer:
         
         id_column = [col for col in self.dataset.columns if 'id' in col.lower()][0]
         
+        X = self.dataset.drop([id_column, self.attribute1, self.attribute2], axis=1)  # select features
+        X = X.select_dtypes(include=[np.number])  # select only numeric columns
+        
         if self.feature_engineering_method == 'none':
             pass
         elif self.feature_engineering_method == 'pca':
-            X = self.dataset.drop([id_column, self.attribute1, self.attribute2], axis=1)  # select features
             pca = PCA(n_components=0.95)  # retain 95% of the variance
             X_pca = pca.fit_transform(X)
             self.dataset = pd.concat([self.dataset[[id_column]], pd.DataFrame(X_pca, columns=[f'PC{i+1}' for i in range(X_pca.shape[1])]), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
-        elif self.feature_engineering_method == 'standardization':
+        elif self.feature_engineering_method == 'tandardization':
             scaler = StandardScaler()
-            X = self.dataset.drop([id_column, self.attribute1, self.attribute2], axis=1)  # select features
             X_scaled = scaler.fit_transform(X)
             self.dataset = pd.concat([self.dataset[[id_column]], pd.DataFrame(X_scaled, columns=X.columns), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
         elif self.feature_engineering_method == 'normalization':
             scaler = MinMaxScaler()
-            X = self.dataset.drop([id_column, self.attribute1, self.attribute2], axis=1)  # select features
             X_scaled = scaler.fit_transform(X)
             self.dataset = pd.concat([self.dataset[[id_column]], pd.DataFrame(X_scaled, columns=X.columns), self.dataset[[self.attribute1, self.attribute2]]], axis=1)
         else:
-            raise ValueError("Invalid feature engineering method. Please choose from 'none', 'pca', 'standardization', or 'normalization'.")
+            raise ValueError("Invalid feature engineering method. Please choose from 'none', 'pca', 'tandardization', or 'normalization'.")
         
         if self.ml_model == 'random_forest':
-            X = self.dataset.drop([id_column, self.attribute1, self.attribute2], axis=1)
             y = self.dataset[[self.attribute1, self.attribute2]]
             clf = RandomForestClassifier(n_estimators=100, random_state=42)
             clf.fit(X, y)
@@ -85,7 +84,7 @@ class AttributeOptimizer:
         for opportunity in opportunities:
             feature, column = opportunity
             if self.objective == 'increase':
-                solutions.append(f'Increase {column}by 10%')
+                solutions.append(f'Increase {column} by 10%')
             else:
                 solutions.append(f'Decrease {column} by 10%')
 
@@ -94,8 +93,7 @@ class AttributeOptimizer:
     def solution_ranking_module(self):
         solution_scores = []
         for solution in self.solutions:
-            impact = 0.5
-            feasibility = 0.8
+            impact = 0.5feasibility = 0.8
             cost = 0.3
             score = impact * feasibility / cost
             solution_scores.append(score)
