@@ -50,13 +50,17 @@ if uploaded_file is not None:
             df['date_num'] = (df['day'] * 1000000) + (df['month'] * 10000) + df['year']
 
             # Drop the original date-time column and the separate date features
-            df.drop([selected_col, 'year', 'month', 'day'], axis=1, inplace=True)
+            df.drop([selected_col, 'year', 'onth', 'day'], axis=1, inplace=True)
 
             # Display the dataframe
             st.write(df.head())
 
+            # Ask the user to select the date component to use as the id
+            selected_date_component = st.selectbox('Select the date component to use as the id', ['hour', 'inute', 'econd'])
+            df['id'] = df[selected_date_component]
+
             # Ask the user to select an attribute to increase or decrease
-            attribute = st.selectbox("Select an attribute to increase or decrease", df.columns)
+            attribute = st.selectbox("Select an attribute to increase or decrease", [col for col in df.columns if col not in ['id', 'date_num']])
 
             # Ask the user to select the direction (increase or decrease)
             direction = st.selectbox("Select the direction", ["Increase", "Decrease"])
@@ -65,7 +69,7 @@ if uploaded_file is not None:
             if attribute == 'date_num':
                 st.error("Cannot select 'date_num' as the attribute to increase or decrease.")
             else:
-                X = df.drop([attribute], axis=1)
+                X = df.drop([attribute, 'id'], axis=1)
                 y = df[attribute]
 
                 # Split the data into training and testing sets
