@@ -3,8 +3,7 @@ import pandas as pd
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+import altair as alt
 from sklearn.metrics import mean_squared_error
 
 # Create a file uploader
@@ -90,15 +89,14 @@ if uploaded_file is not None:
                 feature_importances = model.feature_importances_
                 feature_importances_df = pd.DataFrame({'feature': X.columns, 'importance': feature_importances})
                 feature_importances_df.sort_values(by='importance', ascending=False, inplace=True)
-                st.write(feature_importances_df)
 
-                # Plot the feature importance graph
-                plt.figure(figsize=(10, 6))
-                sns.barplot(x='importance', y='feature', data=feature_importances_df)
-                plt.title('Feature Importance')
-                plt.xlabel('Importance')
-                plt.ylabel('Feature')
-                st.pyplot()
+                # Create an Altair chart
+                chart = alt.Chart(feature_importances_df).mark_bar().encode(
+                    x='importance',
+                    y='feature',
+                    tooltip=['feature', 'importance']
+                )
+                st.altair_chart(chart, use_container_width=True)
 
                 # Generate recommendations
                 if direction == "Increase":
