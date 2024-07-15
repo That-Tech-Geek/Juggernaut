@@ -109,4 +109,9 @@ if uploaded_file is not None:
                 # Display the recommendations
                 st.write("Recommendations:")
                 for i, rec in enumerate(recommendations):
-                    st.write(f"{i+1}. {X.columns[rec]}")
+                    try:
+                        st.write(f"{i+1}. {X.columns[rec]}")
+                    except Exception as e:
+                        st.write(f"Error: {e}")
+    except SyntaxError as e:
+        st.error(f"Syntax Error: {e}")
